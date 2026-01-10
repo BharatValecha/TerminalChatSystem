@@ -1,4 +1,3 @@
-```markdown
 # Java LAN Chat Application with MySQL Login
 
 A console-based Java chat application that supports:
@@ -25,16 +24,16 @@ A console-based Java chat application that supports:
 
 ## Project Structure
 
-```text
 chat-project/
-  ChatServer.java          # Main TCP chat server (multi-client, groups, file relay)
-  ChatClient.java          # Console client with menus + DB-based login/signup
-  DatabaseManager.java     # JDBC + BCrypt helper for MySQL (signup/login)
-  lib/
-    mysql-connector-j-9.5.0.jar   # MySQL JDBC driver
-    jbcrypt-0.4.jar               # BCrypt password hashing
-  user-folders/           # (created at runtime, not committed)
-```
+ChatServer.java # Main TCP chat server (multi-client, groups, file relay)
+ChatClient.java # Console client with menus + DB-based login/signup
+DatabaseManager.java # JDBC + BCrypt helper for MySQL (signup/login)
+lib/
+mysql-connector-j-9.5.0.jar # MySQL JDBC driver
+jbcrypt-0.4.jar # BCrypt password hashing
+user-folders/ # (created at runtime, not committed)
+
+text
 
 You should not commit `.class` files or the `lib/` JARs if you want a clean repo.
 
@@ -59,11 +58,9 @@ You should not commit `.class` files or the `lib/` JARs if you want a clean repo
 
 ```bash
 mysql -u root -p
-```
+Create the database, users table, and dedicated application user:
 
-2. Create the database, `users` table, and dedicated application user:
-
-```sql
+sql
 CREATE DATABASE chat_app;
 USE chat_app;
 
@@ -80,28 +77,22 @@ CREATE USER 'chatapp'@'%' IDENTIFIED BY 'chatapp123';
 GRANT ALL PRIVILEGES ON chat_app.* TO 'chatapp'@'localhost';
 GRANT ALL PRIVILEGES ON chat_app.* TO 'chatapp'@'%';
 FLUSH PRIVILEGES;
-```
+If you hit the "Public Key Retrieval is not allowed" error, either:
 
-3. If you hit the “Public Key Retrieval is not allowed” error, either:
+Add allowPublicKeyRetrieval=true to the JDBC URL (see below), or
 
-- Add `allowPublicKeyRetrieval=true` to the JDBC URL (see below), or  
-- Switch the user to `mysql_native_password`:
+Switch the user to mysql_native_password:
 
-```sql
+sql
 ALTER USER 'chatapp'@'localhost'
   IDENTIFIED WITH mysql_native_password BY 'chatapp123';
 ALTER USER 'chatapp'@'%'
   IDENTIFIED WITH mysql_native_password BY 'chatapp123';
 FLUSH PRIVILEGES;
-```
+DatabaseManager Configuration
+In DatabaseManager.java, configure:
 
----
-
-## DatabaseManager Configuration
-
-In `DatabaseManager.java`, configure:
-
-```java
+java
 private static final String DB_HOST = "localhost"; // or server LAN IP, e.g. "192.168.1.100"
 private static final String DB_URL =
     "jdbc:mysql://" + DB_HOST + ":3306/chat_app"
@@ -109,205 +100,175 @@ private static final String DB_URL =
 
 private static final String DB_USER = "chatapp";
 private static final String DB_PASSWORD = "chatapp123";
-```
-
 This class:
 
-- Loads the MySQL driver (`com.mysql.cj.jdbc.Driver`)
-- Tests the connection
-- Registers new users with BCrypt-hashed passwords
-- Authenticates existing users and updates `last_login`
+Loads the MySQL driver (com.mysql.cj.jdbc.Driver)
 
----
+Tests the connection
 
-## Building the Project (Terminal)
+Registers new users with BCrypt-hashed passwords
 
-From the `chat-project` directory:
+Authenticates existing users and updates last_login
 
-### macOS / Linux
+Building the Project (Terminal)
+From the chat-project directory:
 
-```bash
+macOS / Linux
+bash
 javac -cp .:lib/mysql-connector-j-9.5.0.jar:lib/jbcrypt-0.4.jar \
   ChatServer.java ChatClient.java DatabaseManager.java
-```
-
-### Windows (PowerShell / cmd)
-
-```bat
+Windows (PowerShell / cmd)
+text
 javac -cp .;lib\mysql-connector-j-9.5.0.jar;lib\jbcrypt-0.4.jar ^
   ChatServer.java ChatClient.java DatabaseManager.java
-```
+This produces .class files for all three classes.
 
-This produces `.class` files for all three classes.
-
----
-
-## Running the Server
-
+Running the Server
 On the machine that will act as the chat server:
 
-### macOS / Linux
-
-```bash
+macOS / Linux
+bash
 java -cp .:lib/mysql-connector-j-9.5.0.jar:lib/jbcrypt-0.4.jar ChatServer
-```
-
-### Windows
-
-```bat
+Windows
+text
 java -cp .;lib\mysql-connector-j-9.5.0.jar;lib\jbcrypt-0.4.jar ChatServer
-```
-
 The server:
 
-- Listens on port `12345`
-- Accepts multiple clients
-- Manages users and group channels in memory
+Listens on port 12345
 
-Make sure the server machine’s firewall allows TCP port `12345` and all devices are on the same LAN/Wi‑Fi.
+Accepts multiple clients
 
----
+Manages users and group channels in memory
 
-## Running the Client
+Make sure the server machine's firewall allows TCP port 12345 and all devices are on the same LAN/Wi‑Fi.
 
+Running the Client
 On any device with Java and network access to:
 
-- MySQL (for login/signup)
-- The chat server (TCP port 12345)
+MySQL (for login/signup)
 
-### macOS / Linux
+The chat server (TCP port 12345)
 
-```bash
+macOS / Linux
+bash
 java -cp .:lib/mysql-connector-j-9.5.0.jar:lib/jbcrypt-0.4.jar ChatClient
-```
-
-### Windows
-
-```bat
+Windows
+text
 java -cp .;lib\mysql-connector-j-9.5.0.jar;lib\jbcrypt-0.4.jar ChatClient
-```
+Client flow
+Database connection test
 
-### Client flow
+text
+Testing database connection...
+>>> Database is reachable.
+Auth menu
 
-1. **Database connection test**
+text
+==== Chat Application ====
+1. Login
+2. Sign Up
+0. Exit
+Select option:
+Sign Up: choose username + password (min 6 chars)
 
-   ```text
-   Testing database connection...
-   >>> Database is reachable.
-   ```
+Login: authenticate with existing credentials
 
-2. **Auth menu**
+Server connection
 
-   ```text
-   ==== Chat Application ====
-   1. Login
-   2. Sign Up
-   0. Exit
-   Select option:
-   ```
+text
+Enter server IP address (or press Enter for localhost):
+Enter server port (or press Enter for 12345):
+On server machine → press Enter for localhost
 
-   - **Sign Up**: choose username + password (min 6 chars)
-   - **Login**: authenticate with existing credentials
+On other devices → type the server's LAN IP, e.g. 192.168.1.100
 
-3. **Server connection**
+Main menu
 
-   ```text
-   Enter server IP address (or press Enter for localhost):
-   Enter server port (or press Enter for 12345):
-   ```
+text
+==== MAIN MENU ====
+1. 1-to-1 chat
+2. Group chat (channels)
+0. Exit
+Chat Features
+1-to-1 Chat
+Lists all online users except you.
 
-   - On server machine → press Enter for `localhost`
-   - On other devices → type the server’s LAN IP, e.g. `192.168.1.100`
+Choose a user by number.
 
-4. **Main menu**
+Options:
 
-   ```text
-   ==== MAIN MENU ====
-   1. 1-to-1 chat
-   2. Group chat (channels)
-   0. Exit
-   ```
+Send message.
 
----
+Send file from your user folder.
 
-## Chat Features
+Messages appear as:
 
-### 1-to-1 Chat
+text
+[Alice]: Hi
+[Bob]: Hello!
+Group Chat Channels
+Predefined channels: GroupA, GroupB, GroupC.
 
-- Lists all online users except you.
-- Choose a user by number.
-- Options:
-  - Send message.
-  - Send file from your user folder.
-- Messages appear as:
+After joining a group:
 
-  ```text
-  [Alice]: Hi
-  [Bob]: Hello!
-  ```
+See members in a neat numbered list.
 
-### Group Chat Channels
+Send messages to the whole group.
 
-- Predefined channels: `GroupA`, `GroupB`, `GroupC`.
-- After joining a group:
-  - See members in a neat numbered list.
-  - Send messages to the whole group.
-  - Send files to the group.
+Send files to the group.
 
-### File Transfer
+File Transfer
+For 1-to-1 and group chat.
 
-- For 1-to-1 and group chat.
-- Files transferred as line-based text over the existing socket.
-- Received files stored inside a folder named after your username, prefixed with `received_`.
+Files transferred as line-based text over the existing socket.
 
----
+Received files stored inside a folder named after your username, prefixed with received_.
 
-## .gitignore Suggestions
+.gitignore Suggestions
+Create a .gitignore to avoid committing build artifacts and user data:
 
-Create a `.gitignore` to avoid committing build artifacts and user data:
-
-```text
+text
 *.class
 *.jar
 .DS_Store
 .vscode/
 user-folders/
-<username>/ 
+*/
+!lib/
 */received_*
-```
-
 Adjust paths to match how you create user folders.
 
----
+Example Usage (Single Machine)
+Start MySQL and set up DB/user.
 
-## Example Usage (Single Machine)
+Start ChatServer.
 
-1. Start MySQL and set up DB/user.
-2. Start `ChatServer`.
-3. Open another terminal, run `ChatClient`.
-4. Sign up `Alice` → login.
-5. In a third terminal, run `ChatClient` again.
-6. Sign up `Bob` → login.
-7. Use the menus to start 1‑to‑1 chat or join `GroupA`.
+Open another terminal, run ChatClient.
 
----
+Sign up Alice → login.
 
-## Notes & Limitations
+In a third terminal, run ChatClient again.
 
-- Authentication is handled on the **client side** via the shared MySQL DB; the chat server trusts whatever username it receives as the first message.
-- This is a **console app** intended for learning and demo purposes, not production.
-- File transfer assumes text files (line-based); binary files are not yet supported.
-- No TLS/SSL is used on the chat socket; use only on trusted networks.
+Sign up Bob → login.
 
----
+Use the menus to start 1‑to‑1 chat or join GroupA.
 
-## Future Improvements
+Notes & Limitations
+Authentication is handled on the client side via the shared MySQL DB; the chat server trusts whatever username it receives as the first message.
 
-- Server-side verification of auth tokens instead of trusting client usernames.
-- Support for binary file transfer.
-- Simple GUI client (JavaFX / Swing).
-- Configuration file for DB/port/IP.
-- Docker compose for easy setup (MySQL + server).
+This is a console app intended for learning and demo purposes, not production.
 
----
+File transfer assumes text files (line-based); binary files are not yet supported.
 
+No TLS/SSL is used on the chat socket; use only on trusted networks.
+
+Future Improvements
+Server-side verification of auth tokens instead of trusting client usernames.
+
+Support for binary file transfer.
+
+Simple GUI client (JavaFX / Swing).
+
+Configuration file for DB/port/IP.
+
+Docker compose for easy setup (MySQL + server).
