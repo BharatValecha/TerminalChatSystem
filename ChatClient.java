@@ -13,11 +13,86 @@ public class ChatClient {
     
     public static void main(String[] args) throws IOException {
         BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
-        
+
+        System.out.println("Testing database connection...");
+        if (!DatabaseManager.testConnection()) {
+            System.out.println(">>> ERROR: Could not connect to database. Check MySQL & DB_HOST.");
+            return;
+        }
+        System.out.println(">>> Database is reachable.\n");
+
+        String username = null;
+        boolean authenticated = false;
+
+        while (!authenticated) {
+            System.out.println("==== Chat Application ====");
+            System.out.println("1. Login");
+            System.out.println("2. Sign Up");
+            System.out.println("0. Exit");
+            System.out.print("Select option: ");
+            String authChoice = console.readLine();
+            if (authChoice == null || authChoice.trim().equals("0")) {
+                System.out.println("Bye.");
+                return;
+            }
+
+            switch (authChoice.trim()) {
+                case "1": // login
+                    System.out.print("Username: ");
+                    String u = console.readLine();
+                    System.out.print("Password: ");
+                    String p = console.readLine();
+                    if (DatabaseManager.authenticateUser(u, p)) {
+                        username = u.trim();
+                        authenticated = true;
+                        System.out.println(">>> Login successful. Welcome, " + username + "!\n");
+                    } else {
+                        System.out.println(">>> Invalid username or password.\n");
+                    }
+                    break;
+
+                case "2": // signup
+                    System.out.print("Choose username: ");
+                    String su = console.readLine();
+                    if (su == null || su.trim().isEmpty()) {
+                        System.out.println(">>> Username cannot be empty.\n");
+                        break;
+                    }
+                    su = su.trim();
+                    if (DatabaseManager.userExists(su)) {
+                        System.out.println(">>> Username already taken.\n");
+                        break;
+                    }
+                    System.out.print("Choose password (min 6 chars): ");
+                    String sp = console.readLine();
+                    if (sp == null || sp.length() < 6) {
+                        System.out.println(">>> Password too short.\n");
+                        break;
+                    }
+                    System.out.print("Confirm password: ");
+                    String cp = console.readLine();
+                    if (!sp.equals(cp)) {
+                        System.out.println(">>> Passwords do not match.\n");
+                        break;
+                    }
+                    if (DatabaseManager.registerUser(su, sp)) {
+                        System.out.println(">>> Signup successful. You can now login.\n");
+                    } else {
+                        System.out.println(">>> Signup failed. Try again.\n");
+                    }
+                    break;
+
+                default:
+                    System.out.println(">>> Invalid option.\n");
+            }
+        }
+
+        // Now continue with your existing connection logic,
+        // but remove the old "Enter your name" and reuse `username`.
         System.out.print("Enter server IP address (or press Enter for localhost): ");
         String hostInput = console.readLine();
         String host = (hostInput == null || hostInput.trim().isEmpty()) ? "localhost" : hostInput.trim();
-        
+
         System.out.print("Enter server port (or press Enter for 12345): ");
         String portInput = console.readLine();
         int port = 12345;
@@ -28,21 +103,13 @@ public class ChatClient {
                 System.out.println("Invalid port, using default 12345");
             }
         }
-        
 
         if (args.length >= 1) host = args[0];
         if (args.length >= 2) port = Integer.parseInt(args[1]);
-        
-        System.out.print("Enter your name: ");
-        String username = console.readLine().trim();
-        if (username.isEmpty()) {
-            System.out.println("Name cannot be empty. Exiting.");
-            return;
-        }
-        
+
         File userFolder = new File(username);
         if (!userFolder.exists()) userFolder.mkdirs();
-        
+
         Socket socket;
         try {
             socket = new Socket(host, port);
@@ -52,14 +119,13 @@ public class ChatClient {
             System.out.println("Error: " + e.getMessage());
             return;
         }
-        
-        BufferedReader serverIn = new BufferedReader(
-                new InputStreamReader(socket.getInputStream()));
-        PrintWriter serverOut = new PrintWriter(
-                socket.getOutputStream(), true);
-        
+
+        BufferedReader serverIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        PrintWriter serverOut = new PrintWriter(socket.getOutputStream(), true);
+
+        // send username to server as before
         serverOut.println(username);
-        
+  
         String finalUsername = username;
         new Thread(() -> {
             try {
