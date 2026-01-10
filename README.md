@@ -1,5 +1,3 @@
-Here is the `README.md` content again; you can paste this directly into your file and adjust where needed:
-
 ```markdown
 # Java LAN Chat Application with MySQL Login
 
