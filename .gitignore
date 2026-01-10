@@ -3,3 +3,8 @@
 .DS_Store
 Bharat/
 lib/
+# User folders (created at runtime)
+*/
+!lib/
+
+# But allow lib folder for documentation
