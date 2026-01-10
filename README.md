@@ -313,7 +313,3 @@ Adjust paths to match how you create user folders.
 
 ---
 
-## License
-
-Add your preferred license here (MIT, Apache-2.0, etc.).
-```
