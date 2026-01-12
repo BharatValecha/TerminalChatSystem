@@ -51,7 +51,7 @@ public class ChatClient {
                     }
                     break;
 
-                case "2": // signup
+                case "2":  
                     System.out.print("Choose username: ");
                     String su = console.readLine();
                     if (su == null || su.trim().isEmpty()) {
@@ -87,8 +87,6 @@ public class ChatClient {
             }
         }
 
-        // Now continue with your existing connection logic,
-        // but remove the old "Enter your name" and reuse `username`.
         System.out.print("Enter server IP address (or press Enter for localhost): ");
         String hostInput = console.readLine();
         String host = (hostInput == null || hostInput.trim().isEmpty()) ? "localhost" : hostInput.trim();
@@ -123,7 +121,6 @@ public class ChatClient {
         BufferedReader serverIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         PrintWriter serverOut = new PrintWriter(socket.getOutputStream(), true);
 
-        // send username to server as before
         serverOut.println(username);
   
         String finalUsername = username;
@@ -271,7 +268,6 @@ public class ChatClient {
             
             serverOut.println("LIST_USERS");
             
-            // Wait for server response
             String line = waitForResponse();
             if (line == null) {
                 System.out.println(">>> Server disconnected.");

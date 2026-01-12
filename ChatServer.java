@@ -34,7 +34,7 @@ public class ChatServer {
         private String username = null;
         private String currentGroup = null;
 
-        // file transfer state
+        
         private boolean sendingFile = false;
         private ClientHandler fileTargetHandler = null; 
         private String fileTargetGroup = null;          

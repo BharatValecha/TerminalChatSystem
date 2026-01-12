@@ -2,7 +2,7 @@ import java.sql.*;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class DatabaseManager {
-    // Use the server machine's IP for DB too (same machine as MySQL)
+    
     private static final String DB_HOST = "localhost"; // change to your server IP
     private static final String DB_URL = 
     "jdbc:mysql://" + DB_HOST + ":3306/chat_app?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
@@ -45,7 +45,7 @@ public class DatabaseManager {
                 || password == null || password.length() < 6) {
             return false;
         }
-        String hash = BCrypt.hashpw(password, BCrypt.gensalt()); // salted hash [web:18][web:21]
+        String hash = BCrypt.hashpw(password, BCrypt.gensalt()); 
 
         String sql = "INSERT INTO users(username, password_hash) VALUES(?, ?)";
         try (Connection conn = getConnection();
@@ -55,7 +55,7 @@ public class DatabaseManager {
             ps.executeUpdate();
             return true;
         } catch (SQLIntegrityConstraintViolationException e) {
-            // duplicate username
+            
             return false;
         } catch (SQLException e) {
             System.out.println("DB error (registerUser): " + e.getMessage());
@@ -71,7 +71,7 @@ public class DatabaseManager {
             ResultSet rs = ps.executeQuery();
             if (!rs.next()) return false;
             String hash = rs.getString("password_hash");
-            boolean ok = BCrypt.checkpw(password, hash); // verify [web:18][web:21]
+            boolean ok = BCrypt.checkpw(password, hash);  
             if (ok) {
                 updateLastLogin(username);
             }
